@@ -1,5 +1,6 @@
 #
-# Copyright (C) 2011 The Android Open-Source Project
+# Copyright (C) 2012 The CyanogenMod Project
+# Copyright (C) 2012 The LiquidSmooth Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,17 +15,8 @@
 # limitations under the License.
 #
 
-# This file includes all definitions that apply to ALL tuna devices, and
-# are also specific to tuna devices
-#
-# Everything in this directory will become public
-
 DEVICE_PACKAGE_OVERLAYS := device/samsung/tuna/overlay
 
-# This device is xhdpi.  However the platform doesn't
-# currently contain all of the bitmaps at xhdpi density so
-# we do this little trick to fall back to the hdpi version
-# if the xhdpi doesn't exist.
 PRODUCT_AAPT_CONFIG := normal hdpi xhdpi
 PRODUCT_AAPT_PREF_CONFIG := xhdpi
 
@@ -80,13 +72,13 @@ PRODUCT_PROPERTY_OVERRIDES := \
 PRODUCT_PROPERTY_OVERRIDES += \
 	media.aac_51_output_enabled=true
 
+# Required For Boot DO NOT DELETE!
+PRODUCT_PROPERTY_OVERRIDES += \
+	dalvik.vm.dexopt-data-only=1
+
 # Set default USB interface
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
 	persist.sys.usb.config=mtp
-
-# Torch
-PRODUCT_PACKAGES += \
-        Torch
 
 # NFC
 PRODUCT_PACKAGES += \
@@ -94,13 +86,6 @@ PRODUCT_PACKAGES += \
         libnfc_jni \
         Nfc \
         Tag
-
-# Live Wallpapers
-PRODUCT_PACKAGES += \
-        LiveWallpapers \
-        LiveWallpapersPicker \
-        VisualizationWallpapers \
-        librs_jni
 
 # Key maps
 PRODUCT_COPY_FILES += \
@@ -176,6 +161,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	ro.hwui.disable_scissor_opt=true
 
 PRODUCT_CHARACTERISTICS := nosdcard
+
 PRODUCT_TAGS += dalvik.gc.type-precise
 
 PRODUCT_PACKAGES += \
@@ -186,12 +172,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
 	e2fsck \
 	setup_fs
-
-# for bugmailer
-PRODUCT_PACKAGES += send_bug
-PRODUCT_COPY_FILES += \
-	system/extras/bugmailer/bugmailer.sh:system/bin/bugmailer.sh \
-	system/extras/bugmailer/send_bug:system/bin/send_bug
 
 $(call inherit-product-if-exists, vendor/nxp/pn544/nxp-pn544-fw-vendor.mk)
 $(call inherit-product, hardware/ti/omap4xxx/omap4.mk)
@@ -205,4 +185,3 @@ $(call inherit-product-if-exists, hardware/broadcom/wlan/bcmdhd/firmware/bcm4330
 # vold
 PRODUCT_COPY_FILES += \
 	device/samsung/tuna/vold.fstab:system/etc/vold.fstab
-

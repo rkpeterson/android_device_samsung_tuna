@@ -1,5 +1,6 @@
 #
-# Copyright (C) 2011 The Android Open-Source Project
+# Copyright (C) 2012 The CyanogenMod Project
+# Copyright (C) 2012 The LiquidSmooth Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,8 +15,6 @@
 # limitations under the License.
 #
 
-# This variable is set first, so it can be overridden
-# by BoardConfigVendor.mk
 USE_CAMERA_STUB := true
 
 # Use the non-open-source parts, if they're present
@@ -38,8 +37,6 @@ BOARD_KERNEL_BASE := 0x80000000
 # Define kernel config for inline building
 TARGET_KERNEL_CONFIG := cyanogenmod_tuna_defconfig
 TARGET_KERNEL_SOURCE := kernel/samsung/tuna
-
-TARGET_PREBUILT_KERNEL := device/samsung/tuna/kernel
 
 TARGET_NO_RADIOIMAGE := true
 TARGET_BOARD_PLATFORM := omap4
@@ -82,4 +79,3 @@ TARGET_BOOTANIMATION_USE_RGB565 := true
 
 BOARD_LIB_DUMPSTATE := libdumpstate.tuna
 BOARD_USES_SECURE_SERVICES := true
-
