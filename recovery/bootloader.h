@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 The Android Open Source Project
+ * Copyright (C) 2011 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#ifndef _BDROID_BUILDCFG_H
-#define _BDROID_BUILDCFG_H
+#ifndef __BOOTLOADER_H__
+#define __BOOTLOADER_H__
 
-#define BTM_DEF_LOCAL_NAME   "Galaxy Nexus"
+int update_bootloader(const char* image_data,
+                      size_t image_size,
+                      const char* xloader_loc,
+                      const char* sbl_loc);
 
-#define BLE_INCLUDED TRUE
-#define BTA_GATT_INCLUDED TRUE
-#define SMP_INCLUDED TRUE
 #endif
