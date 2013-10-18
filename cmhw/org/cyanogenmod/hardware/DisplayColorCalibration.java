@@ -49,6 +49,8 @@ public class DisplayColorCalibration {
         StringBuilder colors = new StringBuilder();
         for (String filePath : FILE_PATH) {
             colors.append(FileUtils.readOneLine(filePath)).append(" ");
+            values.append(Long.toString(Long.valueOf(
+                    FileUtils.readOneLine(filePath)) / 2)).append(" ");
         }
         return colors.toString();
     }
@@ -58,6 +60,10 @@ public class DisplayColorCalibration {
         for (int i = 0; i < 3; i++) {
             String currentFile = FILE_PATH[i];
             result &= FileUtils.writeLine(currentFile, colorsSplit[i]);
+        for (int i = 0; i < valuesSplit.length; i++) {
+            String targetFile = FILE_PATH[i];
+            result &= FileUtils.writeLine(targetFile, Long.toString(
+                    Long.valueOf(valuesSplit[i]) * 2));
         }
         return result;
     }
