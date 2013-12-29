@@ -44,10 +44,6 @@ char const *const LED_FILE = "/dev/an30259a_leds";
 #define SLOPE_UP_2        (500-SLOPE_UP_1)
 #define SLOPE_DOWN_1    SLOPE_UP_2
 #define SLOPE_DOWN_2    SLOPE_UP_1
-#define SLOPE_UP_1	450
-#define SLOPE_UP_2	(500-SLOPE_UP_1)
-#define SLOPE_DOWN_1	SLOPE_UP_2
-#define SLOPE_DOWN_2	SLOPE_UP_1
 // brightness at mid-slope, on 0 - 127 scale
 #define MID_BRIGHTNESS  31
 
@@ -60,10 +56,6 @@ enum LED_Type {
 #else
     LED_TYPE_LAST = 2
 #endif
-	LED_TYPE_ATTENTION = 0,
-	LED_TYPE_NOTIFICATION = 1,
-	LED_TYPE_CHARGING = 2,
-	LED_TYPE_LAST = 3
 };
 
 // a "stack" of virtual LED states
@@ -73,8 +65,6 @@ void init_g_lock(void)
 {
     pthread_mutex_init(&g_lock, NULL);
     memset (g_led_states, 0, sizeof(g_led_states));
-	pthread_mutex_init(&g_lock, NULL);
-	memset(g_led_states, 0, sizeof(g_led_states));
 }
 
 static int write_int(char const *path, int value)
@@ -183,24 +173,6 @@ static int write_leds_priority()
     return err;
 }
 
-// similar to write_leds(), but deals with the priority of certain virtual LEDs over others
-static int write_leds_priority()
-{
-	// find the highest priority virtual LED that should be illuminated and
-	// call write_leds() with it
-	int i;
-
-	for (i = 0; i < LED_TYPE_LAST; i++) {
-		// if the LED isn't off and isn't "black" then use it
-		if (g_led_states[i].state != LED_LIGHT_OFF) {
-			return write_leds(&g_led_states[i]);
-		}
-	}
-
-	// nothing should be lit?  make sure to turn it off
-	return write_leds(&g_led_states[LED_TYPE_LAST - 1]);
-}
-
 static int set_light_leds(struct light_state_t const *state, int type)
 {
     if ((type < 0) || (type >= LED_TYPE_LAST))
@@ -247,73 +219,18 @@ static int set_light_leds(struct light_state_t const *state, int type)
 
     // allow write_leds_priority determine if the physical LED should be changed
     return write_leds_priority();
-	if (type < 0 || type >= LED_TYPE_LAST) {
-		return -EINVAL;
-	}
-
-	struct an30259a_pr_control *led_state = &g_led_states[type];
-
-	// set the LED information to the proper element of the array without actually
-	// changing the physical LED yet
-	memset(led_state, 0, sizeof(*led_state));
-
-	// if the color is 0, turn off the LED
-	if (state->color & 0xffffff) {
-		led_state->color = state->color & 0x00ffffff;
-		// tweak to eliminate purplish tint from white color
-		if (led_state->color == 0x00ffffff) {
-			led_state->color = 0x80ff80;
-		}
-
-		switch (state->flashMode) {
-		case LIGHT_FLASH_NONE:
-			led_state->state = LED_LIGHT_ON;
-			break;
-		case LIGHT_FLASH_TIMED:
-		case LIGHT_FLASH_HARDWARE:
-			led_state->state = LED_LIGHT_SLOPE;
-			// scale slope times based on flashOnMS
-			led_state->time_slope_up_1 = (SLOPE_UP_1 * state->flashOnMS) / 1000;
-			led_state->time_slope_up_2 = (SLOPE_UP_2 * state->flashOnMS) / 1000;
-			led_state->time_slope_down_1 = (SLOPE_DOWN_1 * state->flashOnMS) / 1000;
-			led_state->time_slope_down_2 = (SLOPE_DOWN_2 * state->flashOnMS) / 1000;
-			led_state->mid_brightness = MID_BRIGHTNESS;
-			led_state->time_off = state->flashOffMS;
-			break;
-		default:
-			return -EINVAL;
-		}
-	} else {
-		led_state->state = LED_LIGHT_OFF;
-	}
-
-	// allow write_leds_priority determine if the physical LED should be changed
-	return write_leds_priority();
 }
 
 static int set_light_leds_notifications(struct light_device_t *dev,
             struct light_state_t const *state)
 {
     return set_light_leds(state, LED_TYPE_NOTIFICATION);
-	return set_light_leds(state, LED_TYPE_NOTIFICATION);
 }
 
 static int set_light_leds_attention(struct light_device_t *dev,
             struct light_state_t const *state)
 {
     return set_light_leds(state, LED_TYPE_ATTENTION);
-	struct light_state_t attention_state = *state;
-	if (attention_state.flashMode == LIGHT_FLASH_NONE) {
-	    // that's actually NotificationManager's way of turning it off
-	    attention_state.color = 0;
-	}
-	return set_light_leds(&attention_state, LED_TYPE_ATTENTION);
-}
-
-static int set_light_leds_battery(struct light_device_t *dev,
-			struct light_state_t const *state)
-{
-	return set_light_leds(state, LED_TYPE_CHARGING);
 }
 
 #if LIBLIGHTS_SUPPORT_CHARGING_LED
@@ -335,29 +252,6 @@ static int set_light_leds_battery(struct light_device_t *dev,
 
 }
 #endif
-	if (0 == strcmp(LIGHT_ID_BACKLIGHT, name))
-		set_light = set_light_backlight;
-	else if (0 == strcmp(LIGHT_ID_NOTIFICATIONS, name))
-		set_light = set_light_leds_notifications;
-	else if (0 == strcmp(LIGHT_ID_ATTENTION, name))
-		set_light = set_light_leds_attention;
-	else if (0 == strcmp(LIGHT_ID_BATTERY, name))
-		set_light = set_light_leds_battery;
-	else
-		return -EINVAL;
-
-	pthread_once(&g_init, init_g_lock);
-
-	struct light_device_t *dev = malloc(sizeof(struct light_device_t));
-	memset(dev, 0, sizeof(*dev));
-
-	dev->common.tag = HARDWARE_DEVICE_TAG;
-	dev->common.version = 0;
-	dev->common.module = (struct hw_module_t *)module;
-	dev->common.close = (int (*)(struct hw_device_t *))close_lights;
-	dev->set_light = set_light;
-
-	*device = (struct hw_device_t *)dev;
 
 static int open_lights(const struct hw_module_t *module, char const *name,
                         struct hw_device_t **device)
